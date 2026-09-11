@@ -1,0 +1,4 @@
+node_modules/
+site-audit-report/
+*.log
+.DS_Store

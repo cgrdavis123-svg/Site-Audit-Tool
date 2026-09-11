@@ -1,0 +1,39 @@
+{
+  "name": "site-audit-tool",
+  "version": "1.0.0",
+  "description": "In-depth, advanced site auditing CLI: crawls a site and audits SEO, technical health, security, performance, accessibility, content quality and link integrity.",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "site-audit": "./bin/site-audit.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node bin/site-audit.js",
+    "test": "node --test test/"
+  },
+  "keywords": [
+    "seo",
+    "audit",
+    "crawler",
+    "accessibility",
+    "performance",
+    "security",
+    "lighthouse",
+    "site-audit"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "commander": "^12.1.0",
+    "fast-xml-parser": "^4.5.0"
+  },
+  "optionalDependencies": {
+    "axe-core": "^4.10.0",
+    "chrome-launcher": "^1.1.2",
+    "lighthouse": "^12.2.1",
+    "playwright": "^1.48.0"
+  }
+}
