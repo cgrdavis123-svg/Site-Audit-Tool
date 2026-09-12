@@ -121,7 +121,25 @@ resource host isn't asked to crawl several sites at once.
 | `--data-file <file>` | `SITE_AUDIT_DATA_FILE` | Where job history is persisted (JSON) |
 | `--concurrency <n>` | `SITE_AUDIT_CONCURRENCY` | How many audits run at once (default 1) |
 | `--token <token>` | `DASHBOARD_TOKEN` | Require this token to use the dashboard |
-| `--allow-private-targets` | — | Allow auditing private/internal/loopback addresses |
+| `--allow-private-targets` | `SITE_AUDIT_ALLOW_PRIVATE_TARGETS` | Allow auditing private/internal/loopback addresses |
+
+### Deploying to a hosting panel (cPanel, Plesk, etc.)
+
+Most "Node.js App" features in hosting panels don't run `node bin/serve.js`
+directly — they load your startup file themselves, and some do it with a
+plain `require()` rather than spawning Node fresh. This project is a native
+ES Module (`"type": "module"`), and Node cannot `require()` an ES module —
+on LiteSpeed's Node Selector in particular, pointing the startup file at
+`bin/serve.js` fails immediately with `ERR_REQUIRE_ESM`.
+
+**Use `bin/app.cjs` as the application startup file instead.** It's a tiny
+CommonJS shim (exempt from `"type": "module"` because of its `.cjs`
+extension) that bridges into the real app via dynamic `import()`, which
+works fine from CommonJS. It takes no CLI flags — configure it entirely
+through the environment variables in the table above (set them in your
+panel's "Environment Variables" section), since the panel calls this file
+directly rather than passing it arguments. `bin/serve.js` (with CLI flags)
+is still what you want for running the dashboard by hand from a terminal.
 
 ### Security notes — read before exposing this publicly
 
@@ -198,7 +216,10 @@ npm test        # runs the node:test suite
 
 ```
 bin/site-audit.js       CLI entry point (commander)
-bin/serve.js            Dashboard server entry point (commander)
+bin/serve.js            Dashboard entry point for terminal use (commander, CLI flags)
+bin/app.cjs             Dashboard entry point for hosting panels that require() the
+                         startup file (LiteSpeed/lsnode.js, etc.) — env vars only
+src/startDashboard.js   Shared dashboard startup logic used by both entry points
 src/index.js            Orchestrates crawl -> checks -> scoring -> reports
 src/server.js           Express app: dashboard UI, JSON API, report serving, auth
 src/jobs.js             Job queue/manager backing the dashboard (concurrency, persistence)
