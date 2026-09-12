@@ -23,7 +23,8 @@ export function printConsoleReport(report) {
 
   lines.push('');
   lines.push(colorize('━'.repeat(60), 'gray'));
-  lines.push(colorize(`  Site Audit Report — ${meta.startUrl}`, 'bold'));
+  lines.push(colorize('  Syndicate Marketing Site Audit', 'dim'));
+  lines.push(colorize(`  ${meta.startUrl}`, 'bold'));
   lines.push(colorize(`  ${meta.pagesCrawled} page(s) crawled in ${(meta.durationMs / 1000).toFixed(1)}s`, 'dim'));
   lines.push(colorize('━'.repeat(60), 'gray'));
   lines.push('');

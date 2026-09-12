@@ -1,11 +1,12 @@
-# Site Audit Tool
+# Syndicate Marketing Site Audit
 
-An in-depth, advanced site auditing tool for Node.js. It crawls a website and
-audits **SEO**, **technical health**, **security**, **performance**,
-**accessibility**, **content quality**, and **link integrity** — then produces
-a scored HTML dashboard, machine-readable JSON, and CSV reports. Use it as a
-CLI, a library, or a **web dashboard** where anyone on your team can type in a
-URL and click Start.
+An in-depth, advanced site auditing tool built for **Syndicate Marketing**
+(Syndicate Holdings Group LLC). It crawls a website and audits **SEO**,
+**technical health**, **security**, **performance**, **accessibility**,
+**content quality**, and **link integrity** — then produces a scored HTML
+dashboard, machine-readable JSON, and CSV reports. Use it as a native
+**macOS app**, a CLI, a library, or a **web dashboard** where anyone on the
+team can type in a URL and click Start.
 
 ## Features
 
@@ -168,10 +169,11 @@ URL and make it fetch that URL repeatedly. Treat it like any other
 
 ## Desktop app (macOS)
 
-No server, no hosting panel — the dashboard also runs as a real Mac app via
-Electron. It's the same UI and engine as the web dashboard, just packaged
-into a window you double-click open. Reports and job history are stored per-
-user under `~/Library/Application Support/Site Audit Tool/`. Since it's a
+No server, no hosting panel — the dashboard also runs as **Syndicate Marketing
+Site Audit**, a real Mac app via Electron. It's the same UI and engine as the
+web dashboard, just packaged into a window you double-click open. Reports and
+job history are stored per-user under
+`~/Library/Application Support/Syndicate Marketing Site Audit/`. Since it's a
 single-user local app (not something exposed to other people), there's no
 login, and it audits `localhost`/internal addresses by default — handy for
 checking a site you're developing locally.
@@ -192,8 +194,9 @@ remember, no browser tab.
 npm run dist:mac
 ```
 
-This uses `electron-builder` to produce `dist/Site Audit Tool-<version>.dmg`
-(and a `.zip` alongside it). Open the `.dmg`, drag **Site Audit Tool** into
+This uses `electron-builder` to produce
+`dist/Syndicate Marketing Site Audit-<version>.dmg` (and a `.zip` alongside
+it). Open the `.dmg`, drag **Syndicate Marketing Site Audit** into
 Applications. **This build isn't code-signed** (that requires an Apple
 Developer account), so macOS Gatekeeper will refuse to open it with a normal
 double-click the first time — right-click the app → **Open** → **Open** in
@@ -271,4 +274,6 @@ src/checks/*.js         SEO, technical, security, content, links,
                          accessibility (axe), performance (Lighthouse + heuristics)
 src/report/*.js         HTML/JSON/CSV/console report writers
 public/*                Dashboard frontend (static HTML/CSS/JS, no build step)
+public/icons/*          Syndicate Marketing brand mark (favicons + source SVG)
+build/icon.icns          App icon used by electron-builder for the packaged .app
 ```

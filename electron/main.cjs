@@ -4,8 +4,16 @@
 // module. The .cjs extension exempts it from package.json's
 // "type": "module", so require() works, and it reaches the real ESM
 // dashboard code via dynamic import().
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell, nativeImage } = require('electron');
 const path = require('node:path');
+
+const APP_NAME = 'Syndicate Marketing Site Audit';
+const ICON_PATH = path.join(__dirname, '..', 'build', 'icon.png');
+
+// Set as early as possible (before app is ready) so the Dock/menu-bar name
+// and the userData directory (~/Library/Application Support/<name>) are
+// correct from the start, including in unpackaged dev runs.
+app.setName(APP_NAME);
 
 let mainWindow = null;
 let httpServer = null;
@@ -35,7 +43,8 @@ async function createWindow() {
     height: 800,
     minWidth: 720,
     minHeight: 480,
-    title: 'Site Audit Tool',
+    title: APP_NAME,
+    icon: ICON_PATH,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false
@@ -96,11 +105,19 @@ function buildMenu() {
 }
 
 app.whenReady().then(async () => {
+  // Packaged builds get the branded icon from electron-builder's
+  // mac.icon (build/icon.icns) automatically; this only matters for
+  // unpackaged dev runs (`npm run electron`), which otherwise show the
+  // default Electron icon in the Dock.
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setIcon(nativeImage.createFromPath(ICON_PATH));
+  }
+
   buildMenu();
   try {
     await createWindow();
   } catch (error) {
-    console.error('Failed to start Site Audit Tool:', error);
+    console.error(`Failed to start ${APP_NAME}:`, error);
     app.quit();
     return;
   }
