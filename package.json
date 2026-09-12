@@ -14,7 +14,9 @@
   "scripts": {
     "start": "node bin/site-audit.js",
     "dashboard": "node bin/serve.js",
-    "test": "node --test test/"
+    "test": "node --test test/",
+    "electron": "electron electron/main.cjs",
+    "dist:mac": "electron-builder --mac zip dmg --publish=never"
   },
   "keywords": [
     "seo",
@@ -38,5 +40,33 @@
     "chrome-launcher": "^1.1.2",
     "lighthouse": "^12.2.1",
     "playwright": "^1.48.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "co.syndicatemarketing.site-audit-tool",
+    "productName": "Site Audit Tool",
+    "extraMetadata": {
+      "main": "electron/main.cjs"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "public/**/*",
+      "config/**/*",
+      "bin/**/*",
+      "package.json",
+      "!node_modules/playwright/.local-browsers/**",
+      "!node_modules/lighthouse/lighthouse-core/test/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": ["zip", "dmg"]
+    }
   }
 }

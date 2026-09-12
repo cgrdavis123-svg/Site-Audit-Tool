@@ -166,6 +166,41 @@ URL and make it fetch that URL repeatedly. Treat it like any other
   **Directory Privacy** / HTTP basic auth in addition to `--token`, and keep
   `--concurrency` at 1 unless you know the host can handle more.
 
+## Desktop app (macOS)
+
+No server, no hosting panel — the dashboard also runs as a real Mac app via
+Electron. It's the same UI and engine as the web dashboard, just packaged
+into a window you double-click open. Reports and job history are stored per-
+user under `~/Library/Application Support/Site Audit Tool/`. Since it's a
+single-user local app (not something exposed to other people), there's no
+login, and it audits `localhost`/internal addresses by default — handy for
+checking a site you're developing locally.
+
+### Run it without packaging (fastest way to try it)
+
+```bash
+npm install
+npm run electron
+```
+
+A window opens immediately — no separate server process to start, no port to
+remember, no browser tab.
+
+### Build a real .app you can keep in Applications
+
+```bash
+npm run dist:mac
+```
+
+This uses `electron-builder` to produce `dist/Site Audit Tool-<version>.dmg`
+(and a `.zip` alongside it). Open the `.dmg`, drag **Site Audit Tool** into
+Applications. **This build isn't code-signed** (that requires an Apple
+Developer account), so macOS Gatekeeper will refuse to open it with a normal
+double-click the first time — right-click the app → **Open** → **Open** in
+the dialog that appears, and it'll launch normally every time after that.
+
+Run `npm run dist:mac` again after pulling updates to rebuild the app.
+
 ## Programmatic usage
 
 ```js
@@ -219,7 +254,9 @@ bin/site-audit.js       CLI entry point (commander)
 bin/serve.js            Dashboard entry point for terminal use (commander, CLI flags)
 bin/app.cjs             Dashboard entry point for hosting panels that require() the
                          startup file (LiteSpeed/lsnode.js, etc.) — env vars only
-src/startDashboard.js   Shared dashboard startup logic used by both entry points
+electron/main.cjs       Desktop app entry point: opens a window around the same
+                         dashboard, no server/hosting involved
+src/startDashboard.js   Shared dashboard startup logic used by all three entry points
 src/index.js            Orchestrates crawl -> checks -> scoring -> reports
 src/server.js           Express app: dashboard UI, JSON API, report serving, auth
 src/jobs.js             Job queue/manager backing the dashboard (concurrency, persistence)
