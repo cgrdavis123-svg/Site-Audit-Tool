@@ -1,9 +1,11 @@
 # Site Audit Tool
 
-An in-depth, advanced site auditing CLI for Node.js. It crawls a website and
+An in-depth, advanced site auditing tool for Node.js. It crawls a website and
 audits **SEO**, **technical health**, **security**, **performance**,
 **accessibility**, **content quality**, and **link integrity** — then produces
-a scored HTML dashboard, machine-readable JSON, and CSV reports.
+a scored HTML dashboard, machine-readable JSON, and CSV reports. Use it as a
+CLI, a library, or a **web dashboard** where anyone on your team can type in a
+URL and click Start.
 
 ## Features
 
@@ -94,6 +96,58 @@ Run `site-audit --help` for the full list.
 site-audit https://staging.example.com --fail-under 80 --format json --quiet
 ```
 
+## Web dashboard
+
+Prefer clicking a button over the command line? Start the dashboard:
+
+```bash
+npm run dashboard
+# or: node bin/serve.js --port 3000
+```
+
+Then open `http://localhost:3000`, type in a URL, and click **Start Audit**.
+The dashboard shows live progress while it crawls, lists past audits with
+their scores, and links straight to each HTML report. Under the hood it's the
+same engine as the CLI, running through a small job queue so a shared/low-
+resource host isn't asked to crawl several sites at once.
+
+### Dashboard options
+
+| Flag | Env var | Description |
+| --- | --- | --- |
+| `--port <n>` | `PORT` | Port to listen on (default 3000) |
+| `--host <host>` | `HOST` | Interface to bind to (default `0.0.0.0`) |
+| `--reports-dir <dir>` | `SITE_AUDIT_REPORTS_DIR` | Where generated reports are stored |
+| `--data-file <file>` | `SITE_AUDIT_DATA_FILE` | Where job history is persisted (JSON) |
+| `--concurrency <n>` | `SITE_AUDIT_CONCURRENCY` | How many audits run at once (default 1) |
+| `--token <token>` | `DASHBOARD_TOKEN` | Require this token to use the dashboard |
+| `--allow-private-targets` | — | Allow auditing private/internal/loopback addresses |
+
+### Security notes — read before exposing this publicly
+
+The dashboard lets anyone who can reach it point your server at an arbitrary
+URL and make it fetch that URL repeatedly. Treat it like any other
+"fetch a URL I give you" endpoint:
+
+- **Set `--token` (or `DASHBOARD_TOKEN`) if this will be reachable from
+  outside your own machine.** Without it, the dashboard has no login and
+  anyone with the URL can submit jobs. The server prints a loud warning on
+  startup if no token is configured.
+- **Private/internal targets are blocked by default.** The dashboard refuses
+  to audit hostnames that resolve to loopback, link-local, or private-network
+  addresses (e.g. `localhost`, `169.254.169.254` cloud metadata endpoints,
+  `10.x`/`172.16-31.x`/`192.168.x`) — this is an SSRF guard, since a
+  publicly-reachable crawler-on-demand is a classic way to make a server
+  fetch things it shouldn't. Pass `--allow-private-targets` only if you
+  specifically need to audit an internal/staging site and understand the
+  tradeoff.
+- Each submitted job is clamped to sane limits server-side (max 500 pages,
+  max depth 10) regardless of what a client requests, so the UI can't be used
+  to trigger an unbounded crawl.
+- On cPanel/shared hosting, prefer putting the dashboard behind
+  **Directory Privacy** / HTTP basic auth in addition to `--token`, and keep
+  `--concurrency` at 1 unless you know the host can handle more.
+
 ## Programmatic usage
 
 ```js
@@ -144,7 +198,11 @@ npm test        # runs the node:test suite
 
 ```
 bin/site-audit.js       CLI entry point (commander)
+bin/serve.js            Dashboard server entry point (commander)
 src/index.js            Orchestrates crawl -> checks -> scoring -> reports
+src/server.js           Express app: dashboard UI, JSON API, report serving, auth
+src/jobs.js             Job queue/manager backing the dashboard (concurrency, persistence)
+src/utils/ssrfGuard.js  Blocks private/internal audit targets submitted via the dashboard
 src/crawler.js          BFS crawler with robots/sitemap integration
 src/pageParser.js       Extracts structured data from HTML via cheerio
 src/robots.js           robots.txt parsing/matching
@@ -154,4 +212,5 @@ src/scoring.js          Severity-weighted scoring per category
 src/checks/*.js         SEO, technical, security, content, links,
                          accessibility (axe), performance (Lighthouse + heuristics)
 src/report/*.js         HTML/JSON/CSV/console report writers
+public/*                Dashboard frontend (static HTML/CSS/JS, no build step)
 ```

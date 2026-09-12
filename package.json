@@ -5,13 +5,15 @@
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "site-audit": "./bin/site-audit.js"
+    "site-audit": "./bin/site-audit.js",
+    "site-audit-dashboard": "./bin/serve.js"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
     "start": "node bin/site-audit.js",
+    "dashboard": "node bin/serve.js",
     "test": "node --test test/"
   },
   "keywords": [
@@ -28,6 +30,7 @@
   "dependencies": {
     "cheerio": "^1.0.0",
     "commander": "^12.1.0",
+    "express": "^5.2.1",
     "fast-xml-parser": "^4.5.0"
   },
   "optionalDependencies": {

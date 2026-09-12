@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Audit Dashboard</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Site Audit Dashboard</h1>
+  <p class="subtitle">Enter a URL, start an audit, and open the report once it's done.</p>
+
+  <div class="card">
+    <form id="audit-form" class="audit-form">
+      <input type="url" id="url-input" placeholder="https://example.com" required>
+      <button type="submit" id="submit-btn">Start Audit</button>
+    </form>
+
+    <details class="advanced-toggle">
+      <summary>Advanced options</summary>
+      <div class="advanced-grid">
+        <div class="field">
+          <label for="opt-max-pages">Max pages</label>
+          <input type="number" id="opt-max-pages" value="100" min="1" max="500">
+        </div>
+        <div class="field">
+          <label for="opt-max-depth">Max depth</label>
+          <input type="number" id="opt-max-depth" value="5" min="0" max="10">
+        </div>
+        <div class="field checkbox-field">
+          <input type="checkbox" id="opt-a11y">
+          <label for="opt-a11y" style="margin:0;">Run accessibility audit (axe-core)</label>
+        </div>
+        <div class="field checkbox-field">
+          <input type="checkbox" id="opt-lighthouse">
+          <label for="opt-lighthouse" style="margin:0;">Run Lighthouse audit</label>
+        </div>
+        <div class="field checkbox-field">
+          <input type="checkbox" id="opt-ignore-robots">
+          <label for="opt-ignore-robots" style="margin:0;">Ignore robots.txt</label>
+        </div>
+        <div class="field checkbox-field">
+          <input type="checkbox" id="opt-subdomains">
+          <label for="opt-subdomains" style="margin:0;">Include subdomains</label>
+        </div>
+      </div>
+    </details>
+
+    <div id="error-banner" class="error-banner"></div>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>URL</th>
+          <th>Status</th>
+          <th>Score</th>
+          <th>Started</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="jobs-body">
+        <tr class="empty-row"><td colspan="5">No audits yet — start one above.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>site-audit-tool dashboard</footer>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

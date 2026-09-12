@@ -42,8 +42,13 @@ export async function runAudit(userConfig = {}) {
   const logger = createLogger({ quiet: config.quiet, verbose: config.verbose });
   const startedAt = Date.now();
   const warnings = [];
+  // Optional caller-supplied hook for phase-level progress (used by the
+  // dashboard's job manager); the CLI doesn't pass one and relies on the
+  // logger instead.
+  const onStatus = typeof config.onStatus === 'function' ? config.onStatus : () => {};
 
   logger.info(`Starting audit of ${config.url}`);
+  onStatus('crawling', { message: `Crawling ${config.url}…` });
   const crawl = await crawlSite(config.url, {
     maxPages: config.maxPages,
     maxDepth: config.maxDepth,
@@ -60,7 +65,10 @@ export async function runAudit(userConfig = {}) {
     checkExternalLinks: config.checkExternalLinks,
     linkCheckConcurrency: config.linkCheckConcurrency,
     logger,
-    onProgress: ({ crawled, queued, current }) => logger.progress(`Crawled ${crawled} page(s), ${queued} queued — ${current}`)
+    onProgress: ({ crawled, queued, current }) => {
+      logger.progress(`Crawled ${crawled} page(s), ${queued} queued — ${current}`);
+      onStatus('crawling', { crawled, queued, current });
+    }
   });
   logger.endProgress();
   logger.success(`Crawled ${crawl.pages.size} page(s).`);
@@ -78,6 +86,7 @@ export async function runAudit(userConfig = {}) {
   }
 
   logger.info('Running per-page checks…');
+  onStatus('checking', { message: `Running SEO/technical/security/content checks on ${pageList.length} page(s)…` });
   for (const page of pageList) {
     addIssues(checkSeoPage(page));
     addIssues(checkTechnicalPage(page));
@@ -101,6 +110,7 @@ export async function runAudit(userConfig = {}) {
   let accessibility = { available: false, issues: [], pagesAudited: 0 };
   if (config.accessibility) {
     logger.info('Running accessibility audit (this may take a while)…');
+    onStatus('accessibility', { message: 'Running accessibility audit (this may take a while)…' });
     const sample = htmlPages.slice(0, config.accessibilityPages).map((p) => p.url);
     accessibility = await runAccessibilityAudit(sample, { logger, timeout: config.timeout });
     if (!accessibility.available) warnings.push(accessibility.reason);
@@ -110,12 +120,14 @@ export async function runAudit(userConfig = {}) {
   let lighthouse = { available: false, results: [], issues: [] };
   if (config.lighthouse) {
     logger.info('Running Lighthouse audit (this may take a while)…');
+    onStatus('lighthouse', { message: 'Running Lighthouse audit (this may take a while)…' });
     const sample = htmlPages.slice(0, config.lighthousePages).map((p) => p.url);
     lighthouse = await runLighthouseAudit(sample, { logger, timeout: config.timeout * 4 });
     if (!lighthouse.available) warnings.push(lighthouse.reason);
     else addIssues(lighthouse.issues);
   }
 
+  onStatus('scoring', { message: 'Scoring results…' });
   issues.sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] || a.seq - b.seq);
 
   const skippedCategories = [];
@@ -163,6 +175,7 @@ export async function runAudit(userConfig = {}) {
   };
 
   if (config.formats?.length) {
+    onStatus('writing-reports', { message: 'Writing report(s)…' });
     await mkdir(config.outputDir, { recursive: true });
     for (const format of config.formats) {
       const filePath = path.join(config.outputDir, `report.${format}`);
@@ -174,6 +187,7 @@ export async function runAudit(userConfig = {}) {
   }
 
   if (!config.quiet) printConsoleReport(report);
+  onStatus('done', { message: 'Audit complete.' });
 
   return report;
 }

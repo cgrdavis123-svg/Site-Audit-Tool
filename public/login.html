@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Audit Dashboard — Sign in</title>
+<link rel="stylesheet" href="/app.css">
+<style>
+  .login-wrap { max-width: 360px; margin: 15vh auto 0; padding: 0 16px; }
+  .login-wrap form { display: flex; flex-direction: column; gap: 12px; }
+  .login-wrap input { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="card">
+    <h1 style="font-size:18px;">Site Audit Dashboard</h1>
+    <p class="subtitle">Enter the access token to continue.</p>
+    <form id="login-form">
+      <input type="password" id="token-input" placeholder="Access token" autofocus required>
+      <button type="submit">Sign in</button>
+    </form>
+    <div id="error-banner" class="error-banner"></div>
+  </div>
+</div>
+<script>
+  const form = document.getElementById('login-form');
+  const errorBanner = document.getElementById('error-banner');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBanner.classList.remove('visible');
+    const token = document.getElementById('token-input').value;
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    if (res.ok) {
+      location.href = '/';
+    } else {
+      const body = await res.json().catch(() => ({}));
+      errorBanner.textContent = body.error || 'Sign in failed.';
+      errorBanner.classList.add('visible');
+    }
+  });
+</script>
+</body>
+</html>
