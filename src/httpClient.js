@@ -1,4 +1,13 @@
+import dns from 'node:dns';
 import { sleep } from './utils/concurrency.js';
+
+// Node (via undici) attempts IPv6 first by default. On networks where IPv6
+// is advertised but broken or misconfigured — common on home/office Wi-Fi —
+// that first attempt fails outright rather than falling back to IPv4 fast
+// enough, so an otherwise-reachable site throws a bare "fetch failed" even
+// though it loads fine in a browser. Preferring IPv4 avoids that whole class
+// of false failures.
+dns.setDefaultResultOrder('ipv4first');
 
 const DEFAULT_HEADERS = {
   'user-agent': 'SiteAuditTool/1.0 (+https://github.com/) Node.js',
@@ -70,7 +79,7 @@ export async function fetchUrl(targetUrl, {
       }
       return {
         ok: false,
-        error: error.name === 'AbortError' ? new Error(`Request timed out after ${timeout}ms`) : error,
+        error: error.name === 'AbortError' ? new Error(`Request timed out after ${timeout}ms`) : new Error(describeError(error)),
         requestedUrl: targetUrl,
         finalUrl: currentUrl,
         redirectChain: chain,
@@ -83,6 +92,30 @@ export async function fetchUrl(targetUrl, {
       };
     }
   }
+}
+
+/**
+ * Node's global fetch() throws a bare `TypeError: fetch failed` and buries
+ * the actual reason (DNS failure, connection refused, TLS error, etc.) in
+ * `error.cause` — and when multiple addresses were tried (e.g. IPv6 then
+ * IPv4), that cause is itself an AggregateError with one entry per attempt.
+ * Walk all of that to produce a message that actually says what went wrong.
+ */
+function describeError(error) {
+  const parts = [];
+  let current = error;
+  const seen = new Set();
+  while (current && !seen.has(current)) {
+    seen.add(current);
+    if (Array.isArray(current.errors) && current.errors.length) {
+      parts.push(...current.errors.map((e) => e.message || String(e)));
+      current = current.errors[0]?.cause;
+      continue;
+    }
+    if (current.message && !parts.includes(current.message)) parts.push(current.message);
+    current = current.cause;
+  }
+  return parts.length ? parts.join(': ') : String(error);
 }
 
 function buildResult({ finalUrl, response, chain, elapsedMs, bodyBuffer }) {
